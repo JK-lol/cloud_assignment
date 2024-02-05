@@ -1,178 +1,117 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Login Page</title>
+  <title>Create Account</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
+  </script>
   <nav class="navbar">
     <div class="logo">
       <a href="">
-        &nbsp&nbsp<img src="assets/sale-sign.png" alt="SDS_logo">
+        <img src="assets/sale-sign.png" alt="SDS_logo">
         <span>&nbsp&nbspSALES PILOT&nbsp&nbsp</span>
         <img src="assets/cashier-machine.png" alt="SDS_logo">
       </a>
     </div>
+    <div class="navbar-func">
+      <a href="#" onclick="updatePassword()">Update Password</a>
+      <span>&nbsp&nbsp&nbsp|&nbsp&nbsp&nbsp</span>
+      <a href="#" onclick="logout()">Log Out&nbsp&nbsp</a>
+    </div>
   </nav>
 
-  <table class="login">
-    <tr>
-      <th class="login-user">
-        <ul class="login-options">
-          <li class="userlogin_li active">
-            <img src="./assets/profile-user.png" alt="User Logo" width="40px" height="40px"><br>User
-          </li><br><br>
-          <li class="adminlogin_li">
-            <img src="./assets/user.png" alt="User Logo" width="40px" height="40px"><br>Admin
-          </li>
-        </ul> 
-      </th>
-      <th>
-        <div class="userlogin">
-          <form id="userLoginForm">
-            <h1>User Login</h1><br><br>
-            <div class="input_field">
-              <input type="text" placeholder="User Email" class="input" name="email">
-            </div>
-            <div class="input_field">
-              <input type="password" placeholder="Password" class="input" name="password">
-            </div>
-            <button type="submit" class="btn">Login</button>
-          </form>
-        </div>
+  <form id="createAccountForm">
+    <table class="createAccount">
+      <caption>Create Account</caption>
+      <tr>
+        <td><label for="name">Name:</label></td>
+        <td><input type="text" id="name" name="name" required></td>
+      </tr>
+      <tr>
+        <td><label for="email">Email:</label></td>
+        <td><input type="email" id="email" name="email" required></td>
+      </tr>
+      <tr>
+        <td><label for="password">Password:</label></td>
+        <td><input type="password" id="password" name="password" required></td>
+      </tr>
+      <tr>
+        <td><label for="confirm_password">Confirm Password:</label></td>
+        <td><input type="password" id="confirm_password" name="confirm_password" required></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td><button type="submit">Create Account</button><br></td>
+      </tr>
+    </table>
+  </form>
   
-        <div class="adminlogin">
-          <form id="adminLoginForm">
-            <h1>Admin Login</h1><br><br>
-            <div class="input_field">
-              <input type="text" placeholder="Admin Email" class="input" name="email">
-            </div>
-            <div class="input_field">
-              <input type="password" placeholder="Password" class="input" name="password">
-            </div>
-            <button type="submit" class="btn">Login</button>
-          </form>
-        </div>
-        <div id="message" class="message"></div>
-      </div>
-      </th>
-    </tr>
-  </table>
+  <div id="result"></div>
+  <div id="result"></div>
 
   <script>
-    $(document).ready(function() {
-      const userLoginForm = $("#userLoginForm");
-      const adminLoginForm = $("#adminLoginForm");
+    // Logout and clear data from local storage
+    function logout() {
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    }
 
-      $(".adminlogin").hide();
-      $(".userlogin_li").addClass("active");
+    // Update password
+    function updatePassword() {
+      window.location.href = "updatepassword.html";
+    }
+    
 
-      $(".adminlogin_li").click(function() {
-        $(this).addClass("active");
-        $(".userlogin_li").removeClass("active");
-        $(".adminlogin").show();
-        $(".userlogin").hide();
-      });
-
-      $(".userlogin_li").click(function() {
-        $(this).addClass("active");
-        $(".adminlogin_li").removeClass("active");
-        $(".userlogin").show();
-        $(".adminlogin").hide();
-      });
-
-      // Event listener for user login form submission
-      userLoginForm.on("submit", async function(e) {
-        e.preventDefault();
-
-        const email = userLoginForm.find("input[name='email']").val();
-        const password = userLoginForm.find("input[name='password']").val();
-        try {
-          const response = await fetch("http://localhost:3000/api/login/user", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ email, password })
-          });
-
-          if (response.ok) {
-            // Successful login
-            const data = await response.json();
-            const token = data.token;
-            // Store the token in local storage
-            localStorage.setItem("token", token);
-            // Redirect to userhome.html
-            window.location.href = "userhome.html";
-          } else {
-            // Failed login
-            const data = await response.json();
-            console.error("Error:", data.error);
-            // $("#message").text(data.error);
-            alert(data.error);
-            location.reload();
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          // $("#message").text("An error occurred. Please try again later.");
-          alert("An error occurred. Please try again later.");
+    document.getElementById('createAccountForm').addEventListener('submit', createAccount);
+  
+    async function createAccount(event) {
+      event.preventDefault();
+  
+      const form = event.target;
+      const name = form.elements.name.value;
+      const email = form.elements.email.value;
+      const password = form.elements.password.value;
+      const confirm_password = form.elements.confirm_password.value;
+      const type = form.elements.type.value;
+  
+      if (password !== confirm_password) {
+        document.getElementById('result').innerHTML = "Error: Password and confirmed password do not match.";
+        return;
+      }
+  
+      const payload = { name, email, password, confirmed_password: confirm_password, type };
+  
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch('http://localhost:3000/api/account', {
+          method: 'POST',
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+  
+        if (response.ok) {
+          const responseData = await response.json();
+          alert("Account created successfully!");
+          window.location.href="adminhome.html";
+        } else {
+          const errorData = await response.json();
+          const errorMessage = errorData.errors[0].msg;
+          alert(`Error creating account: ${errorMessage}`);
           location.reload();
         }
-      });
-
-      adminLoginForm.on("submit", async function(e) {
-        e.preventDefault();
-
-        const email = adminLoginForm.find("input[name='email']").val();
-        const password = adminLoginForm.find("input[name='password']").val();
-        try {
-          const response = await fetch("http://localhost:3000/api/login/admin", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ email, password })
-          });
-
-          if (response.ok) {
-            // Successful login
-            const data = await response.json();
-            const token = data.token;
-            // Store the token in local storage
-            localStorage.setItem("token", token);
-            // Redirect to adminhome.html
-            window.location.href = "adminhome.html";
-          } else {
-            // Failed login
-            const data = await response.json();
-            console.error("Error:", data.error);
-            $("#message").text(data.error);
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          $("#message").text("An error occurred. Please try again later.");
-        }
-      });
-
-      // Add event listener to the Enter key press event on input fields
-      userLoginForm.find("input").on("keyup", function(e) {
-        if (e.key === "Enter") {
-          // Enter key pressed, trigger form submission
-          userLoginForm.trigger("submit");
-        }
-      });
-
-      // Add event listener to the Enter key press event on input fields
-      adminLoginForm.find("input").on("keyup", function(e) {
-        if (e.key === "Enter") {
-          // Enter key pressed, trigger form submission
-          adminLoginForm.trigger("submit");
-        }
-      });
-    });
+      } catch (error) {
+        console.error(error);
+        alert('An error occurred while creating the account.');
+        location.reload();
+      }
+    }
   </script>
+  
 </body>
 </html>
